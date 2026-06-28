@@ -4,7 +4,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Nova AI v5</title>
+<title>Nova AI</title>
 
 <style>
 *{
@@ -106,14 +106,14 @@ border-radius:8px;
 <div id="home">
 <div class="logo">🤖</div>
 <h2>Welcome to Nova AI</h2>
-<p>Powered by Gemini</p>
+<p>Powered by Gemini API</p>
 <button onclick="openChat()">Start Chat</button>
 </div>
 
 <div id="chat">
 
 <div id="chatBox">
-<div class="ai">Hello! Main Nova AI hoon 🤖</div>
+<div class="ai">👋 Hello! Main Nova AI hoon</div>
 </div>
 
 <div class="bottom">
@@ -139,12 +139,11 @@ if(!text) return;
 
 let box=document.getElementById("chatBox");
 
-// user msg
 box.innerHTML += `<div class="user">${text}</div>`;
 input.value="";
 box.scrollTop=box.scrollHeight;
 
-// typing
+// typing indicator
 box.innerHTML += `<div class="ai" id="typing">Typing...</div>`;
 
 try{
@@ -157,17 +156,20 @@ headers:{
 body:JSON.stringify({message:text})
 });
 
-let data = await res.json();
+// safe JSON parse
+let data = await res.json().catch(()=>({}));
 
-document.getElementById("typing").remove();
+document.getElementById("typing")?.remove();
 
-box.innerHTML += `<div class="ai">${data.reply}</div>`;
+box.innerHTML += `<div class="ai">${data?.reply || "No response from AI"}</div>`;
 box.scrollTop=box.scrollHeight;
 
 }
 catch(e){
-document.getElementById("typing").remove();
-box.innerHTML += `<div class="ai">Error ❌</div>`;
+
+document.getElementById("typing")?.remove();
+box.innerHTML += `<div class="ai">Server Error ❌</div>`;
+
 }
 
 }
