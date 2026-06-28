@@ -1,9 +1,20 @@
 export default async function handler(req, res) {
   try {
+    if (req.method !== "POST") {
+      return res.status(405).json({ reply: "Method not allowed" });
+    }
 
     const { message } = req.body;
 
+    if (!message) {
+      return res.status(400).json({ reply: "No message provided" });
+    }
+
     const apiKey = process.env.GEMINI_API_KEY;
+
+    if (!apiKey) {
+      return res.status(500).json({ reply: "API key missing in Vercel env" });
+    }
 
     const response = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`,
@@ -24,23 +35,17 @@ export default async function handler(req, res) {
 
     const data = await response.json();
 
-    console.log("FULL RESPONSE:", JSON.stringify(data));
+    console.log("Gemini Response:", JSON.stringify(data));
 
-    // 🔥 SAFE EXTRACTION (IMPORTANT FIX)
-    let reply = "No response from AI";
+    const reply =
+      data?.candidates?.[0]?.content?.parts?.[0]?.text;
 
-    if (data && data.candidates && data.candidates.length > 0) {
-      const content = data.candidates[0].content;
-
-      if (content && content.parts && content.parts.length > 0) {
-        reply = content.parts[0].text;
-      }
-    }
-
-    return res.status(200).json({ reply });
+    return res.status(200).json({
+      reply: reply || "No response from AI"
+    });
 
   } catch (error) {
-    console.log(error);
+    console.error(error);
 
     return res.status(500).json({
       reply: "Server Error"
