@@ -3,6 +3,10 @@ export default async function handler(req, res) {
 
     const { message } = req.body;
 
+    if (!message) {
+      return res.status(400).json({ reply: "No message received" });
+    }
+
     const apiKey = process.env.GEMINI_API_KEY;
 
     const response = await fetch(
@@ -15,7 +19,11 @@ export default async function handler(req, res) {
         body: JSON.stringify({
           contents: [
             {
-              parts: [{ text: message }]
+              parts: [
+                {
+                  text: message
+                }
+              ]
             }
           ]
         })
@@ -24,16 +32,18 @@ export default async function handler(req, res) {
 
     const data = await response.json();
 
-    console.log("DEBUG:", data);
+    console.log("GEMINI RESPONSE:", JSON.stringify(data));
 
     const reply =
       data?.candidates?.[0]?.content?.parts?.[0]?.text;
 
     return res.status(200).json({
-      reply: reply || "No response from AI"
+      reply: reply
     });
 
-  } catch (err) {
+  } catch (error) {
+    console.log(error);
+
     return res.status(500).json({
       reply: "Server Error"
     });
